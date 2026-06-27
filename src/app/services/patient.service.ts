@@ -1,35 +1,44 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Patient } from '../models/ehr.models';
+import { bundleResources } from '../models/fhir.models';
+import { FhirService } from './fhir.service';
+import { patientFromFhir, patientToFhir } from './fhir-mappers';
 
+/**
+ * Patient access over FHIR (Patient resource). A couple of administrative
+ * operations not exposed via FHIR fall back to the platform /api.
+ */
 @Injectable({ providedIn: 'root' })
 export class PatientService {
-  private readonly baseUrl = `${environment.apiUrl}/patients`;
-
-  constructor(private http: HttpClient) {}
+  constructor(private fhir: FhirService, private http: HttpClient) {}
 
   list(search?: string, institutionId?: number): Observable<Patient[]> {
-    let params = new HttpParams();
-    if (search) { params = params.set('search', search); }
-    if (institutionId != null) { params = params.set('institutionId', String(institutionId)); }
-    return this.http.get<Patient[]>(this.baseUrl, { params });
+    const params: Record<string, string | number> = {};
+    if (search) { params['name'] = search; }
+    if (institutionId != null) { params['institution'] = institutionId; }
+    return this.fhir.search('Patient', params).pipe(
+      map(bundle => bundleResources(bundle, 'Patient').map(patientFromFhir))
+    );
   }
 
   getById(id: number): Observable<Patient> {
-    return this.http.get<Patient>(`${this.baseUrl}/${id}`);
+    return this.fhir.read('Patient', id).pipe(map(patientFromFhir));
   }
 
   create(patient: Patient): Observable<Patient> {
-    return this.http.post<Patient>(this.baseUrl, patient);
+    return this.fhir.create('Patient', patientToFhir(patient)).pipe(map(patientFromFhir));
   }
 
+  // Administrative (non-FHIR) operations.
   update(id: number, patient: Patient): Observable<Patient> {
-    return this.http.put<Patient>(`${this.baseUrl}/${id}`, patient);
+    return this.http.put<Patient>(`${environment.apiUrl}/patients/${id}`, patient);
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    return this.http.delete<void>(`${environment.apiUrl}/patients/${id}`);
   }
 }

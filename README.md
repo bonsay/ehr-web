@@ -27,18 +27,35 @@ Serves on <http://localhost:4200> and proxies `/api` to the backend at
 `http://localhost:8081` (see `proxy.conf.json`). Start `ehr-api` first
 (preferably with the `h2` profile so the seed data is present).
 
+## FHIR communication
+
+The client talks to the backend over the **FHIR R4 API** for all patient and
+clinical data — `Patient`, `Organization`, `Condition`, `MedicationRequest`,
+`AllergyIntolerance`, `Observation`, `Encounter`, `Consent`, and the
+`Patient/$everything` operation for consent-gated record sharing. The platform
+`/api` is used only for non-clinical config (module catalog, consent admin).
+
+`FhirService` is the low-level REST client; `fhir-mappers.ts` translates FHIR
+resources to/from the app's domain models, so the page components stay unchanged
+and work in plain domain objects. FHIR is an implementation detail of the
+service layer.
+
 ## Project structure
 
 ```
 src/app
-├── models/ehr.models.ts          shared TypeScript interfaces
+├── models/
+│   ├── ehr.models.ts             domain interfaces used by components
+│   └── fhir.models.ts            FHIR Bundle/resource envelope types
 ├── services/                     HTTP + state services
-│   ├── institution.service.ts
+│   ├── fhir.service.ts           low-level FHIR R4 REST client
+│   ├── fhir-mappers.ts           FHIR <-> domain model translation
+│   ├── institution.service.ts    FHIR Organization (+ admin via /api)
 │   ├── institution-context.service.ts   "acting as" institution + enabled modules
-│   ├── module.service.ts
-│   ├── patient.service.ts
-│   ├── clinical.service.ts       encounters/problems/medications/allergies/vitals
-│   └── consent.service.ts        consents + cross-institution shared record
+│   ├── module.service.ts         module catalog/enablement (/api)
+│   ├── patient.service.ts        FHIR Patient
+│   ├── clinical.service.ts       FHIR Condition/MedicationRequest/AllergyIntolerance/Observation/Encounter
+│   └── consent.service.ts        FHIR Consent + Patient/$everything
 ├── pages/
 │   ├── dashboard/
 │   ├── module-marketplace/       the pick-and-choose surface

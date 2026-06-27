@@ -1,72 +1,82 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { map } from 'rxjs/operators';
 import { Allergy, Encounter, Medication, Problem, VitalSign } from '../models/ehr.models';
+import { bundleResources } from '../models/fhir.models';
+import { FhirService } from './fhir.service';
+import {
+  allergyFromFhir, allergyToFhir, conditionFromFhir, conditionToFhir,
+  encounterFromFhir, encounterToFhir, medicationFromFhir, medicationToFhir,
+  observationFromFhir, observationToFhir
+} from './fhir-mappers';
 
 /**
- * CRUD access to the per-patient clinical modules. Each module is a nested
- * resource under /patients/{id} for reads/creates and a flat resource for
- * updates/deletes, matching ehr-api's controllers.
+ * Per-patient clinical modules, exchanged as FHIR R4 resources:
+ *   Encounter, Condition (problems), MedicationRequest, AllergyIntolerance,
+ *   Observation (vitals). Reads use FHIR search-type; creates use FHIR create;
+ *   deletes use FHIR delete.
  */
 @Injectable({ providedIn: 'root' })
 export class ClinicalService {
-  private readonly apiUrl = environment.apiUrl;
-
-  constructor(private http: HttpClient) {}
+  constructor(private fhir: FhirService) {}
 
   // Encounters ---------------------------------------------------------------
   getEncounters(patientId: number): Observable<Encounter[]> {
-    return this.http.get<Encounter[]>(`${this.apiUrl}/patients/${patientId}/encounters`);
+    return this.fhir.search('Encounter', { patient: patientId }).pipe(
+      map(b => bundleResources(b, 'Encounter').map(encounterFromFhir)));
   }
   addEncounter(patientId: number, e: Encounter): Observable<Encounter> {
-    return this.http.post<Encounter>(`${this.apiUrl}/patients/${patientId}/encounters`, e);
+    return this.fhir.create('Encounter', encounterToFhir({ ...e, patientId })).pipe(map(encounterFromFhir));
   }
   deleteEncounter(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/encounters/${id}`);
+    return this.fhir.delete('Encounter', id);
   }
 
-  // Problems -----------------------------------------------------------------
+  // Problems -> Condition ----------------------------------------------------
   getProblems(patientId: number): Observable<Problem[]> {
-    return this.http.get<Problem[]>(`${this.apiUrl}/patients/${patientId}/problems`);
+    return this.fhir.search('Condition', { patient: patientId }).pipe(
+      map(b => bundleResources(b, 'Condition').map(conditionFromFhir)));
   }
   addProblem(patientId: number, p: Problem): Observable<Problem> {
-    return this.http.post<Problem>(`${this.apiUrl}/patients/${patientId}/problems`, p);
+    return this.fhir.create('Condition', conditionToFhir({ ...p, patientId })).pipe(map(conditionFromFhir));
   }
   deleteProblem(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/problems/${id}`);
+    return this.fhir.delete('Condition', id);
   }
 
-  // Medications --------------------------------------------------------------
+  // Medications -> MedicationRequest -----------------------------------------
   getMedications(patientId: number): Observable<Medication[]> {
-    return this.http.get<Medication[]>(`${this.apiUrl}/patients/${patientId}/medications`);
+    return this.fhir.search('MedicationRequest', { patient: patientId }).pipe(
+      map(b => bundleResources(b, 'MedicationRequest').map(medicationFromFhir)));
   }
   addMedication(patientId: number, m: Medication): Observable<Medication> {
-    return this.http.post<Medication>(`${this.apiUrl}/patients/${patientId}/medications`, m);
+    return this.fhir.create('MedicationRequest', medicationToFhir({ ...m, patientId })).pipe(map(medicationFromFhir));
   }
   deleteMedication(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/medications/${id}`);
+    return this.fhir.delete('MedicationRequest', id);
   }
 
-  // Allergies ----------------------------------------------------------------
+  // Allergies -> AllergyIntolerance ------------------------------------------
   getAllergies(patientId: number): Observable<Allergy[]> {
-    return this.http.get<Allergy[]>(`${this.apiUrl}/patients/${patientId}/allergies`);
+    return this.fhir.search('AllergyIntolerance', { patient: patientId }).pipe(
+      map(b => bundleResources(b, 'AllergyIntolerance').map(allergyFromFhir)));
   }
   addAllergy(patientId: number, a: Allergy): Observable<Allergy> {
-    return this.http.post<Allergy>(`${this.apiUrl}/patients/${patientId}/allergies`, a);
+    return this.fhir.create('AllergyIntolerance', allergyToFhir({ ...a, patientId })).pipe(map(allergyFromFhir));
   }
   deleteAllergy(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/allergies/${id}`);
+    return this.fhir.delete('AllergyIntolerance', id);
   }
 
-  // Vitals -------------------------------------------------------------------
+  // Vitals -> Observation ----------------------------------------------------
   getVitals(patientId: number): Observable<VitalSign[]> {
-    return this.http.get<VitalSign[]>(`${this.apiUrl}/patients/${patientId}/vitals`);
+    return this.fhir.search('Observation', { patient: patientId }).pipe(
+      map(b => bundleResources(b, 'Observation').map(observationFromFhir)));
   }
   addVital(patientId: number, v: VitalSign): Observable<VitalSign> {
-    return this.http.post<VitalSign>(`${this.apiUrl}/patients/${patientId}/vitals`, v);
+    return this.fhir.create('Observation', observationToFhir({ ...v, patientId })).pipe(map(observationFromFhir));
   }
   deleteVital(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/vitals/${id}`);
+    return this.fhir.delete('Observation', id);
   }
 }
