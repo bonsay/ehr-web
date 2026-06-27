@@ -1,0 +1,48 @@
+<div class="container">
+  <h1>Dashboard</h1>
+  <p class="text-muted" *ngIf="current">
+    You are working in <strong>{{ current.name }}</strong> ({{ current.code }}).
+    Only the modules this institution has enabled appear across the app.
+  </p>
+
+  <div class="grid-cards" style="margin-top: 16px;">
+    <div class="card">
+      <h3>Active Institution</h3>
+      <p *ngIf="current; else noInst" style="font-size: 18px; margin: 0;">
+        {{ current.name }}
+      </p>
+      <ng-template #noInst><p class="text-muted">No institution selected.</p></ng-template>
+      <p class="text-muted mb-0">{{ current?.type }}</p>
+    </div>
+
+    <div class="card">
+      <h3>Enabled Modules</h3>
+      <p style="font-size: 28px; font-weight: 700; margin: 0;">{{ enabled.length }}</p>
+      <p class="text-muted mb-0">of {{ modules.length }} available</p>
+      <a routerLink="/modules" class="btn btn-sm btn-primary" style="margin-top: 10px;">Manage modules</a>
+    </div>
+
+    <div class="card">
+      <h3>Patients</h3>
+      <p class="text-muted">Browse and manage patient charts.</p>
+      <a routerLink="/patients" class="btn btn-sm btn-primary">Go to patients</a>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 16px;">
+    <h3>Your enabled modules</h3>
+    <div class="row" *ngIf="enabled.length; else noModules">
+      <span class="badge badge-on" *ngFor="let m of enabled">{{ m.name }}</span>
+    </div>
+    <ng-template #noModules>
+      <p class="empty">No modules enabled yet. Visit <a routerLink="/modules">Modules</a> to turn some on.</p>
+    </ng-template>
+
+    <ng-container *ngIf="disabled.length">
+      <h4 class="text-muted" style="margin-top: 16px;">Available to enable</h4>
+      <div class="row">
+        <span class="badge badge-off" *ngFor="let m of disabled">{{ m.name }}</span>
+      </div>
+    </ng-container>
+  </div>
+</div>

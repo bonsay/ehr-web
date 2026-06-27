@@ -1,0 +1,27 @@
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">✚</span>
+    <span class="title">Modular EHR</span>
+  </div>
+
+  <nav class="nav">
+    <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+    <a routerLink="/patients" routerLinkActive="active">Patients</a>
+    <a routerLink="/modules" routerLinkActive="active">Modules</a>
+  </nav>
+
+  <div class="spacer"></div>
+
+  <div class="institution-picker" *ngIf="institutions.length">
+    <label for="inst">Acting as</label>
+    <select id="inst"
+            [value]="current?.id"
+            (change)="onInstitutionChange($any($event.target).value)">
+      <option *ngFor="let i of institutions" [value]="i.id">{{ i.name }} ({{ i.code }})</option>
+    </select>
+  </div>
+</header>
+
+<main>
+  <router-outlet></router-outlet>
+</main>

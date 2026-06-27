@@ -1,0 +1,87 @@
+<div class="container">
+  <div class="row" style="align-items: center;">
+    <h1 style="margin: 0;">Patients</h1>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" (click)="toggleForm()">
+      {{ showForm ? 'Cancel' : '+ Register patient' }}
+    </button>
+  </div>
+
+  <div class="card" style="margin-top: 16px;" *ngIf="showForm">
+    <h3>Register a new patient</h3>
+    <div class="row">
+      <div class="form-group" style="flex: 1 1 160px;">
+        <label>MRN *</label>
+        <input [(ngModel)]="newPatient.mrn" placeholder="MRN-1003">
+      </div>
+      <div class="form-group" style="flex: 1 1 160px;">
+        <label>First name *</label>
+        <input [(ngModel)]="newPatient.firstName">
+      </div>
+      <div class="form-group" style="flex: 1 1 160px;">
+        <label>Last name *</label>
+        <input [(ngModel)]="newPatient.lastName">
+      </div>
+      <div class="form-group" style="flex: 1 1 140px;">
+        <label>Date of birth</label>
+        <input type="date" [(ngModel)]="newPatient.dateOfBirth">
+      </div>
+      <div class="form-group" style="flex: 1 1 120px;">
+        <label>Gender</label>
+        <select [(ngModel)]="newPatient.gender">
+          <option value="">—</option>
+          <option value="MALE">Male</option>
+          <option value="FEMALE">Female</option>
+          <option value="OTHER">Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group" style="flex: 1 1 200px;">
+        <label>Email</label>
+        <input [(ngModel)]="newPatient.email">
+      </div>
+      <div class="form-group" style="flex: 1 1 160px;">
+        <label>Phone</label>
+        <input [(ngModel)]="newPatient.phone">
+      </div>
+      <div class="form-group" style="flex: 2 1 260px;">
+        <label>Address</label>
+        <input [(ngModel)]="newPatient.address">
+      </div>
+    </div>
+    <button class="btn btn-accent" (click)="create()">Save patient</button>
+    <span class="text-muted" style="margin-left: 10px;">
+      Home institution: {{ current?.name || '—' }}
+    </span>
+  </div>
+
+  <div class="card" style="margin-top: 16px;">
+    <div class="row" style="align-items: center;">
+      <input style="flex: 1 1 auto;"
+             [(ngModel)]="searchTerm"
+             (keyup.enter)="load()"
+             placeholder="Search by name or MRN…">
+      <button class="btn btn-primary" (click)="load()">Search</button>
+    </div>
+
+    <p class="empty" *ngIf="loading">Loading…</p>
+
+    <table *ngIf="!loading && patients.length">
+      <thead>
+        <tr><th>MRN</th><th>Name</th><th>DOB</th><th>Gender</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of patients">
+          <td>{{ p.mrn }}</td>
+          <td>{{ p.lastName }}, {{ p.firstName }}</td>
+          <td>{{ p.dateOfBirth || '—' }}</td>
+          <td>{{ p.gender || '—' }}</td>
+          <td><a [routerLink]="['/patients', p.id]" class="btn btn-sm btn-primary">Open chart</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="empty" *ngIf="!loading && !patients.length">No patients found.</p>
+  </div>
+</div>

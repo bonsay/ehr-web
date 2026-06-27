@@ -1,0 +1,35 @@
+<div class="container">
+  <h1>Module Marketplace</h1>
+  <p class="text-muted" *ngIf="current">
+    Pick the EHR functions that suit <strong>{{ current.name }}</strong>'s clinical needs.
+    Enabled modules appear on every patient chart; disabled ones stay hidden.
+  </p>
+
+  <ng-container *ngFor="let category of categories">
+    <h3 style="margin-top: 24px;">{{ category }}</h3>
+    <div class="grid-cards">
+      <div class="card" *ngFor="let m of byCategory(category)">
+        <div class="row" style="align-items: center;">
+          <h3 style="margin: 0;">{{ m.name }}</h3>
+          <div class="spacer"></div>
+          <span class="badge" [class.badge-on]="m.enabled" [class.badge-off]="!m.enabled">
+            {{ m.enabled ? 'Enabled' : 'Disabled' }}
+          </span>
+        </div>
+        <p class="text-muted">{{ m.description }}</p>
+        <code class="text-muted">{{ m.code }}</code>
+        <div style="margin-top: 12px;">
+          <button class="btn btn-sm"
+                  [class.btn-danger]="m.enabled"
+                  [class.btn-accent]="!m.enabled"
+                  [disabled]="saving[m.code]"
+                  (click)="toggle(m)">
+            {{ saving[m.code] ? 'Saving…' : (m.enabled ? 'Disable' : 'Enable') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <p class="empty" *ngIf="!modules.length">No modules in the catalog.</p>
+</div>

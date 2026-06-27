@@ -1,0 +1,15 @@
+.patient-header { border-left: 4px solid var(--primary); }
+.text-right { text-align: right; }
+
+.add-row {
+  align-items: center;
+  margin-bottom: 12px;
+}
+.add-row input,
+.add-row select {
+  flex: 1 1 120px;
+  min-width: 0;
+}
+
+h4 { margin-bottom: 4px; }
+ul { margin-top: 4px; }

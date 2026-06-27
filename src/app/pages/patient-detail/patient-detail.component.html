@@ -1,0 +1,266 @@
+<div class="container" *ngIf="patient">
+  <a routerLink="/patients" class="text-muted">← Back to patients</a>
+
+  <!-- Demographics header (DEMOGRAPHICS module) -->
+  <div class="card patient-header" style="margin-top: 12px;">
+    <div class="row" style="align-items: center;">
+      <div>
+        <h1 style="margin: 0;">{{ patient.lastName }}, {{ patient.firstName }}</h1>
+        <p class="text-muted mb-0">
+          MRN {{ patient.mrn }} · {{ patient.gender || 'Unknown' }} · DOB {{ patient.dateOfBirth || '—' }}
+        </p>
+      </div>
+      <div class="spacer"></div>
+      <div class="text-muted text-right">
+        <div>Home: {{ institutionName(patient.homeInstitutionId) }}</div>
+        <div *ngIf="patient.phone">☎ {{ patient.phone }}</div>
+        <div *ngIf="patient.email">✉ {{ patient.email }}</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="text-muted" *ngIf="!tabs.length">
+    No clinical modules are enabled for {{ current?.name }}. Enable some in the Module Marketplace.
+  </p>
+
+  <!-- Module-driven tabs -->
+  <div class="tabs" style="margin-top: 16px;">
+    <button class="tab" *ngFor="let t of tabs"
+            [class.active]="activeTab === t.code"
+            (click)="selectTab(t.code)">{{ t.label }}</button>
+  </div>
+
+  <!-- ENCOUNTERS -->
+  <div class="card" *ngIf="activeTab === MC.ENCOUNTERS">
+    <h3>Encounters</h3>
+    <div class="row add-row">
+      <input placeholder="Type (e.g. Office Visit)" [(ngModel)]="newEncounter.type">
+      <input style="flex: 2;" placeholder="Reason" [(ngModel)]="newEncounter.reason">
+      <input placeholder="Provider" [(ngModel)]="newEncounter.providerName">
+      <button class="btn btn-accent btn-sm" (click)="addEncounter()">Add</button>
+    </div>
+    <textarea style="width: 100%; margin-top: 8px;" rows="2"
+              placeholder="Notes…" [(ngModel)]="newEncounter.notes"></textarea>
+    <table *ngIf="encounters.length">
+      <thead><tr><th>Date</th><th>Type</th><th>Reason</th><th>Provider</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <tr *ngFor="let e of encounters">
+          <td>{{ e.encounterDate | date:'short' }}</td>
+          <td>{{ e.type }}</td>
+          <td>{{ e.reason }}</td>
+          <td>{{ e.providerName }}</td>
+          <td>{{ e.status }}</td>
+          <td><button class="btn btn-sm btn-danger" (click)="removeEncounter(e)">Delete</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="empty" *ngIf="!encounters.length">No encounters recorded.</p>
+  </div>
+
+  <!-- PROBLEMS -->
+  <div class="card" *ngIf="activeTab === MC.PROBLEMS">
+    <h3>Problem List</h3>
+    <div class="row add-row">
+      <input placeholder="Code (ICD-10)" [(ngModel)]="newProblem.code">
+      <input style="flex: 2;" placeholder="Description *" [(ngModel)]="newProblem.description">
+      <input type="date" [(ngModel)]="newProblem.onsetDate">
+      <button class="btn btn-accent btn-sm" (click)="addProblem()">Add</button>
+    </div>
+    <table *ngIf="problems.length">
+      <thead><tr><th>Code</th><th>Description</th><th>Status</th><th>Onset</th><th></th></tr></thead>
+      <tbody>
+        <tr *ngFor="let p of problems">
+          <td>{{ p.code || '—' }}</td>
+          <td>{{ p.description }}</td>
+          <td><span class="badge badge-active">{{ p.status }}</span></td>
+          <td>{{ p.onsetDate || '—' }}</td>
+          <td><button class="btn btn-sm btn-danger" (click)="removeProblem(p)">Delete</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="empty" *ngIf="!problems.length">No problems recorded.</p>
+  </div>
+
+  <!-- MEDICATIONS -->
+  <div class="card" *ngIf="activeTab === MC.MEDICATIONS">
+    <h3>Medications</h3>
+    <div class="row add-row">
+      <input style="flex: 2;" placeholder="Name *" [(ngModel)]="newMedication.name">
+      <input placeholder="Dosage" [(ngModel)]="newMedication.dosage">
+      <input placeholder="Frequency" [(ngModel)]="newMedication.frequency">
+      <input placeholder="Route" [(ngModel)]="newMedication.route">
+      <button class="btn btn-accent btn-sm" (click)="addMedication()">Add</button>
+    </div>
+    <table *ngIf="medications.length">
+      <thead><tr><th>Name</th><th>Dosage</th><th>Frequency</th><th>Route</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <tr *ngFor="let m of medications">
+          <td>{{ m.name }}</td>
+          <td>{{ m.dosage }}</td>
+          <td>{{ m.frequency }}</td>
+          <td>{{ m.route }}</td>
+          <td><span class="badge badge-active">{{ m.status }}</span></td>
+          <td><button class="btn btn-sm btn-danger" (click)="removeMedication(m)">Delete</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="empty" *ngIf="!medications.length">No medications recorded.</p>
+  </div>
+
+  <!-- ALLERGIES -->
+  <div class="card" *ngIf="activeTab === MC.ALLERGIES">
+    <h3>Allergies</h3>
+    <div class="row add-row">
+      <input placeholder="Allergen *" [(ngModel)]="newAllergy.allergen">
+      <input style="flex: 2;" placeholder="Reaction" [(ngModel)]="newAllergy.reaction">
+      <select [(ngModel)]="newAllergy.severity">
+        <option value="">Severity…</option>
+        <option value="MILD">Mild</option>
+        <option value="MODERATE">Moderate</option>
+        <option value="SEVERE">Severe</option>
+      </select>
+      <button class="btn btn-accent btn-sm" (click)="addAllergy()">Add</button>
+    </div>
+    <table *ngIf="allergies.length">
+      <thead><tr><th>Allergen</th><th>Reaction</th><th>Severity</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <tr *ngFor="let a of allergies">
+          <td>{{ a.allergen }}</td>
+          <td>{{ a.reaction }}</td>
+          <td><span class="badge badge-warn">{{ a.severity }}</span></td>
+          <td>{{ a.status }}</td>
+          <td><button class="btn btn-sm btn-danger" (click)="removeAllergy(a)">Delete</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="empty" *ngIf="!allergies.length">No allergies recorded.</p>
+  </div>
+
+  <!-- VITALS -->
+  <div class="card" *ngIf="activeTab === MC.VITALS">
+    <h3>Vital Signs</h3>
+    <div class="row add-row">
+      <input placeholder="BP (120/80)" [(ngModel)]="newVital.bloodPressure">
+      <input type="number" placeholder="HR" [(ngModel)]="newVital.heartRate">
+      <input type="number" placeholder="RR" [(ngModel)]="newVital.respiratoryRate">
+      <input type="number" step="0.1" placeholder="Temp °C" [(ngModel)]="newVital.temperature">
+      <input type="number" placeholder="SpO₂ %" [(ngModel)]="newVital.oxygenSaturation">
+      <button class="btn btn-accent btn-sm" (click)="addVital()">Add</button>
+    </div>
+    <table *ngIf="vitals.length">
+      <thead><tr><th>Date</th><th>BP</th><th>HR</th><th>RR</th><th>Temp</th><th>SpO₂</th><th></th></tr></thead>
+      <tbody>
+        <tr *ngFor="let v of vitals">
+          <td>{{ v.recordedDate | date:'short' }}</td>
+          <td>{{ v.bloodPressure }}</td>
+          <td>{{ v.heartRate }}</td>
+          <td>{{ v.respiratoryRate }}</td>
+          <td>{{ v.temperature }}</td>
+          <td>{{ v.oxygenSaturation }}</td>
+          <td><button class="btn btn-sm btn-danger" (click)="removeVital(v)">Delete</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="empty" *ngIf="!vitals.length">No vitals recorded.</p>
+  </div>
+
+  <!-- SHARING & CONSENT -->
+  <div *ngIf="activeTab === 'SHARING'">
+    <div class="card">
+      <h3>Sharing consents</h3>
+      <p class="text-muted">
+        The patient controls which institutions may access their record. Grant consent to share
+        the whole record (ALL) or specific modules.
+      </p>
+      <div class="row add-row">
+        <select [(ngModel)]="grant.grantedToInstitutionId">
+          <option [ngValue]="null">Select institution…</option>
+          <option *ngFor="let i of institutions"
+                  [ngValue]="i.id"
+                  [disabled]="i.id === patient.homeInstitutionId">
+            {{ i.name }} ({{ i.code }}){{ i.id === patient.homeInstitutionId ? ' — home' : '' }}
+          </option>
+        </select>
+        <input style="flex: 2;" placeholder="Scope: ALL or e.g. PROBLEMS,MEDICATIONS"
+               [(ngModel)]="grant.scope">
+        <button class="btn btn-accent btn-sm" (click)="grantConsent()">Grant consent</button>
+      </div>
+
+      <table *ngIf="consents.length">
+        <thead><tr><th>Institution</th><th>Scope</th><th>Status</th><th>Granted</th><th></th></tr></thead>
+        <tbody>
+          <tr *ngFor="let c of consents">
+            <td>{{ institutionName(c.grantedToInstitutionId) }}</td>
+            <td><code>{{ c.scope }}</code></td>
+            <td>
+              <span class="badge" [class.badge-active]="c.status === 'ACTIVE'"
+                    [class.badge-revoked]="c.status === 'REVOKED'">{{ c.status }}</span>
+            </td>
+            <td>{{ c.grantedDate | date:'short' }}</td>
+            <td>
+              <button class="btn btn-sm btn-danger"
+                      *ngIf="c.status === 'ACTIVE'"
+                      (click)="revokeConsent(c)">Revoke</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="empty" *ngIf="!consents.length">No consents granted yet.</p>
+    </div>
+
+    <div class="card" style="margin-top: 16px;">
+      <h3>Preview shared record</h3>
+      <p class="text-muted">
+        See exactly what another institution would receive when requesting this patient's record —
+        consent is enforced server-side.
+      </p>
+      <div class="row add-row">
+        <select [(ngModel)]="shareViewInstitutionId">
+          <option [ngValue]="null">Requesting institution…</option>
+          <option *ngFor="let i of institutions" [ngValue]="i.id">{{ i.name }} ({{ i.code }})</option>
+        </select>
+        <button class="btn btn-primary btn-sm" (click)="viewSharedRecord()">Fetch shared record</button>
+      </div>
+
+      <p class="badge badge-revoked" *ngIf="shareError" style="margin-top: 10px;">{{ shareError }}</p>
+
+      <div *ngIf="sharedRecord" style="margin-top: 12px;">
+        <p>
+          <strong>Shared modules:</strong>
+          <span class="badge badge-on" *ngFor="let m of sharedRecord.sharedModules" style="margin-left:4px;">{{ m }}</span>
+          <span *ngIf="!sharedRecord.sharedModules.length" class="text-muted">none</span>
+        </p>
+        <p>
+          <strong>Withheld (no consent):</strong>
+          <span class="badge badge-off" *ngFor="let m of sharedRecord.deniedModules" style="margin-left:4px;">{{ m }}</span>
+          <span *ngIf="!sharedRecord.deniedModules.length" class="text-muted">none</span>
+        </p>
+
+        <div *ngIf="sharedRecord.problems.length">
+          <h4>Problems</h4>
+          <ul><li *ngFor="let p of sharedRecord.problems">{{ p.code }} — {{ p.description }} ({{ p.status }})</li></ul>
+        </div>
+        <div *ngIf="sharedRecord.medications.length">
+          <h4>Medications</h4>
+          <ul><li *ngFor="let m of sharedRecord.medications">{{ m.name }} {{ m.dosage }} — {{ m.frequency }}</li></ul>
+        </div>
+        <div *ngIf="sharedRecord.allergies.length">
+          <h4>Allergies</h4>
+          <ul><li *ngFor="let a of sharedRecord.allergies">{{ a.allergen }} — {{ a.reaction }} ({{ a.severity }})</li></ul>
+        </div>
+        <div *ngIf="sharedRecord.encounters.length">
+          <h4>Encounters</h4>
+          <ul><li *ngFor="let e of sharedRecord.encounters">{{ e.encounterDate | date:'short' }} — {{ e.reason }}</li></ul>
+        </div>
+        <div *ngIf="sharedRecord.vitalSigns.length">
+          <h4>Vitals</h4>
+          <ul><li *ngFor="let v of sharedRecord.vitalSigns">{{ v.recordedDate | date:'short' }} — BP {{ v.bloodPressure }}, HR {{ v.heartRate }}</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container" *ngIf="!patient">
+  <p class="empty">Loading patient…</p>
+</div>
