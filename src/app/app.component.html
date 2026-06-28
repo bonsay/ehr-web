@@ -16,9 +16,19 @@
     <label for="inst">Acting as</label>
     <select id="inst"
             [value]="current?.id"
+            [disabled]="context.locked"
+            [title]="context.locked ? 'Set by your signed-in identity' : ''"
             (change)="onInstitutionChange($any($event.target).value)">
       <option *ngFor="let i of institutions" [value]="i.id">{{ i.name }} ({{ i.code }})</option>
     </select>
+  </div>
+
+  <div class="auth-box" *ngIf="auth.enabled">
+    <span class="user" *ngIf="auth.hasValidToken()">{{ auth.username || 'Signed in' }}</span>
+    <button class="btn btn-sm" *ngIf="auth.hasValidToken(); else loginBtn" (click)="auth.logout()">Sign out</button>
+    <ng-template #loginBtn>
+      <button class="btn btn-sm" (click)="auth.login()">Sign in</button>
+    </ng-template>
   </div>
 </header>
 

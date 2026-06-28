@@ -4,6 +4,7 @@ import { switchMap, tap } from 'rxjs/operators';
 import { Institution, ModuleStatus } from '../models/ehr.models';
 import { InstitutionService } from './institution.service';
 import { ModuleService } from './module.service';
+import { AuthService } from './auth.service';
 
 const STORAGE_KEY = 'ehr.currentInstitutionId';
 
@@ -23,21 +24,32 @@ export class InstitutionContextService {
 
   constructor(
     private institutionService: InstitutionService,
-    private moduleService: ModuleService
+    private moduleService: ModuleService,
+    private auth: AuthService
   ) {}
 
   get current(): Institution | null {
     return this.currentSubject.value;
   }
 
-  /** Load institutions and restore (or default) the active one. */
+  /**
+   * When authenticated, the acting institution is fixed by the token's claim and
+   * cannot be changed in the UI. In open/dev mode the user may switch freely.
+   */
+  get locked(): boolean {
+    return this.auth.enabled && this.auth.institutionId != null;
+  }
+
+  /** Load institutions and select the active one. */
   initialize(): Observable<Institution[]> {
     return this.institutionService.getAll().pipe(
       tap(institutions => {
-        const savedId = Number(localStorage.getItem(STORAGE_KEY));
-        const restored = institutions.find(i => i.id === savedId) ?? institutions[0];
-        if (restored) {
-          this.setCurrent(restored);
+        // Secured mode: the token's institution claim wins.
+        const claimId = this.auth.enabled ? this.auth.institutionId : null;
+        const savedId = claimId ?? Number(localStorage.getItem(STORAGE_KEY));
+        const selected = institutions.find(i => i.id === savedId) ?? institutions[0];
+        if (selected) {
+          this.setCurrent(selected);
         }
       })
     );

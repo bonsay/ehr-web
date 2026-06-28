@@ -30,3 +30,9 @@
   border-radius: 8px;
   padding: 6px 10px;
 }
+.institution-picker select:disabled { opacity: 0.85; cursor: not-allowed; }
+
+.auth-box { display: flex; align-items: center; gap: 8px; }
+.auth-box .user { color: #fff; font-weight: 600; }
+.auth-box .btn { background: rgba(255, 255, 255, 0.95); }
+

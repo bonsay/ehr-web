@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Institution } from './models/ehr.models';
 import { InstitutionContextService } from './services/institution-context.service';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +16,10 @@ export class AppComponent implements OnInit {
   institutions: Institution[] = [];
   current: Institution | null = null;
 
-  constructor(public context: InstitutionContextService) {}
+  constructor(
+    public context: InstitutionContextService,
+    public auth: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.context.initialize().subscribe(list => (this.institutions = list));

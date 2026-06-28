@@ -23,9 +23,40 @@ npm install
 npm start
 ```
 
-Serves on <http://localhost:4200> and proxies `/api` to the backend at
-`http://localhost:8081` (see `proxy.conf.json`). Start `ehr-api` first
+Serves on <http://localhost:4200> and proxies `/api` and `/fhir` to the backend
+at `http://localhost:8081` (see `proxy.conf.json`). Start `ehr-api` first
 (preferably with the `h2` profile so the seed data is present).
+
+By default `environment.ts` has `auth.enabled = false`, so local dev runs
+against the open `h2` backend with no identity provider.
+
+## Authentication (OIDC + PKCE)
+
+In higher environments the app authenticates with an OpenID Connect provider
+using the **Authorization Code flow with PKCE** (`angular-oauth2-oidc`):
+
+- `AuthService` configures the IdP and completes login (via `APP_INITIALIZER`).
+- `authInterceptor` attaches the access token as `Authorization: Bearer …` to
+  `/api` and `/fhir` calls.
+- `authGuard` protects routes and triggers the login redirect.
+- The acting institution is taken from the token's institution claim, and the
+  top-bar selector is locked (no spoofing).
+
+Enable and configure it in `src/environments/environment*.ts`:
+
+```ts
+auth: {
+  enabled: true,
+  issuer: 'https://<your-idp>/realms/ehr',
+  clientId: 'ehr-web',
+  scope: 'openid profile email',
+  institutionClaim: 'institution_id'   // must match the API's claim
+}
+```
+
+`environment.prod.ts` ships with `auth.enabled = true`. Register `ehr-web` in
+your IdP as a public SPA client with redirect URI = the app origin and Auth Code
++ PKCE enabled (works with Keycloak, Entra ID, Auth0, Cognito).
 
 ## FHIR communication
 
@@ -47,11 +78,14 @@ src/app
 ├── models/
 │   ├── ehr.models.ts             domain interfaces used by components
 │   └── fhir.models.ts            FHIR Bundle/resource envelope types
+├── guards/auth.guard.ts          route guard (OIDC)
 ├── services/                     HTTP + state services
+│   ├── auth.service.ts           OIDC login/logout/token/claims (Auth Code + PKCE)
+│   ├── auth.interceptor.ts       attaches Bearer token to /api and /fhir
 │   ├── fhir.service.ts           low-level FHIR R4 REST client
 │   ├── fhir-mappers.ts           FHIR <-> domain model translation
 │   ├── institution.service.ts    FHIR Organization (+ admin via /api)
-│   ├── institution-context.service.ts   "acting as" institution + enabled modules
+│   ├── institution-context.service.ts   "acting as" institution (locked to token claim when secured)
 │   ├── module.service.ts         module catalog/enablement (/api)
 │   ├── patient.service.ts        FHIR Patient
 │   ├── clinical.service.ts       FHIR Condition/MedicationRequest/AllergyIntolerance/Observation/Encounter
@@ -61,9 +95,9 @@ src/app
 │   ├── module-marketplace/       the pick-and-choose surface
 │   ├── patient-list/
 │   └── patient-detail/           modular tabs + sharing/consent
-├── app.component.*               shell: top bar + institution picker
-├── app.routes.ts
-└── app.config.ts                 provideRouter + provideHttpClient
+├── app.component.*               shell: top bar + institution picker + sign in/out
+├── app.routes.ts                 routes guarded by authGuard
+└── app.config.ts                 provideRouter + provideHttpClient + provideOAuthClient
 ```
 
 ## Try the modular + sharing flow
