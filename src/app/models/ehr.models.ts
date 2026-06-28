@@ -137,6 +137,58 @@ export interface SharedPatientRecord {
   vitalSigns: VitalSign[];
 }
 
+/** The authenticated principal, as returned by /api/auth/me and login. */
+export interface CurrentUser {
+  username: string;
+  fullName?: string;
+  institutionId?: number | null;
+  role?: string | null;
+  /** Flat permission strings, e.g. "VITALS:WRITE", "ADMIN:USERS". */
+  permissions: string[];
+}
+
+/** Successful local-mode login result. */
+export interface LoginResponse {
+  accessToken: string;
+  tokenType: string;
+  expiresInSeconds: number;
+  user: CurrentUser;
+}
+
+/** A role and the permissions it grants (admin console). */
+export interface Role {
+  code: string;
+  name: string;
+  description?: string;
+  systemRole: boolean;
+  permissions: string[];
+}
+
+/** A managed user account (admin console). */
+export interface ManagedUser {
+  id?: number;
+  username: string;
+  fullName?: string;
+  institutionId?: number | null;
+  roleCode: string;
+  enabled: boolean;
+  dateCreated?: string;
+}
+
+/** Canonical permission actions and admin permissions. */
+export const Permission = {
+  READ: 'READ',
+  WRITE: 'WRITE',
+  ADMIN_USERS: 'ADMIN:USERS',
+  ADMIN_ROLES: 'ADMIN:ROLES',
+  ADMIN_MODULES: 'ADMIN:MODULES'
+} as const;
+
+/** Builds a MODULE:ACTION permission string (mirrors the API). */
+export function perm(module: string, action: string): string {
+  return `${module}:${action}`;
+}
+
 /** Canonical module codes (must match com.ehrapi.common.ModuleCodes). */
 export const ModuleCode = {
   DEMOGRAPHICS: 'DEMOGRAPHICS',

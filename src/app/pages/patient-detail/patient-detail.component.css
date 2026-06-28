@@ -13,3 +13,8 @@
 
 h4 { margin-bottom: 4px; }
 ul { margin-top: 4px; }
+
+.readonly-note {
+  margin: 4px 0 12px;
+  font-style: italic;
+}

@@ -33,6 +33,16 @@
 .institution-picker select:disabled { opacity: 0.85; cursor: not-allowed; }
 
 .auth-box { display: flex; align-items: center; gap: 8px; }
-.auth-box .user { color: #fff; font-weight: 600; }
+.auth-box .user { color: #fff; font-weight: 600; display: flex; align-items: center; gap: 6px; }
 .auth-box .btn { background: rgba(255, 255, 255, 0.95); }
+.role-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
 

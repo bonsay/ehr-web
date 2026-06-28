@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Institution, ModuleStatus } from '../../models/ehr.models';
+import { Institution, ModuleStatus, Permission } from '../../models/ehr.models';
 import { ModuleService } from '../../services/module.service';
 import { InstitutionContextService } from '../../services/institution-context.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-module-marketplace',
@@ -17,8 +18,14 @@ export class ModuleMarketplaceComponent implements OnInit {
 
   constructor(
     private moduleService: ModuleService,
-    private context: InstitutionContextService
+    private context: InstitutionContextService,
+    private auth: AuthService
   ) {}
+
+  /** Only administrators may enable/disable modules for the institution. */
+  get canManage(): boolean {
+    return this.auth.can(Permission.ADMIN_MODULES);
+  }
 
   ngOnInit(): void {
     this.context.current$.subscribe(c => {

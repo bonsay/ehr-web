@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Institution } from './models/ehr.models';
 import { InstitutionContextService } from './services/institution-context.service';
 import { AuthService } from './services/auth.service';
@@ -18,12 +18,22 @@ export class AppComponent implements OnInit {
 
   constructor(
     public context: InstitutionContextService,
-    public auth: AuthService
+    public auth: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.context.initialize().subscribe(list => (this.institutions = list));
+    if (this.auth.hasValidToken()) {
+      this.context.initialize().subscribe(list => (this.institutions = list));
+    }
     this.context.current$.subscribe(c => (this.current = c));
+  }
+
+  signOut(): void {
+    this.auth.logout();
+    if (this.auth.isLocal) {
+      this.router.navigateByUrl('/login');
+    }
   }
 
   onInstitutionChange(value: string): void {

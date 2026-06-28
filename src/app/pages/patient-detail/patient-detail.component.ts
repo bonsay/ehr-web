@@ -4,13 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   Allergy, Encounter, Institution, Medication, ModuleCode, Patient,
-  PatientConsent, Problem, SharedPatientRecord, VitalSign
+  PatientConsent, perm, Problem, SharedPatientRecord, VitalSign
 } from '../../models/ehr.models';
 import { PatientService } from '../../services/patient.service';
 import { ClinicalService } from '../../services/clinical.service';
 import { ConsentService } from '../../services/consent.service';
 import { InstitutionService } from '../../services/institution.service';
 import { InstitutionContextService } from '../../services/institution-context.service';
+import { AuthService } from '../../services/auth.service';
 
 interface TabDef { code: string; label: string; }
 
@@ -59,8 +60,14 @@ export class PatientDetailComponent implements OnInit {
     private clinical: ClinicalService,
     private consentService: ConsentService,
     private institutionService: InstitutionService,
-    private context: InstitutionContextService
+    private context: InstitutionContextService,
+    public auth: AuthService
   ) {}
+
+  /** Whether the signed-in user may record/modify data in the given module. */
+  canWrite(moduleCode: string): boolean {
+    return this.auth.can(perm(moduleCode, 'WRITE'));
+  }
 
   ngOnInit(): void {
     this.patientId = Number(this.route.snapshot.paramMap.get('id'));

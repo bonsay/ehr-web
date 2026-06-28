@@ -3,8 +3,8 @@ import { inject } from '@angular/core';
 import { AuthService } from './auth.service';
 
 /**
- * Attaches the OIDC access token as a Bearer header to API/FHIR requests.
- * No-op when auth is disabled (local dev) or no token is available.
+ * Attaches the access token (local-mode JWT or OIDC token) as a Bearer header to
+ * API/FHIR requests. No-op when auth is disabled or no token is available.
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);

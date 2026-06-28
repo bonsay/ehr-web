@@ -1,0 +1,35 @@
+.role-card { margin-top: 16px; }
+
+.perm-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.perm-group-title {
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--primary-dark, #1e3a8a);
+  margin-bottom: 6px;
+}
+
+.perm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.perm input { cursor: pointer; }
+
+.save-msg { margin-right: 10px; font-size: 0.85rem; }
+
+.add-row { align-items: center; flex-wrap: wrap; gap: 8px; }
+.add-row input, .add-row select { flex: 1 1 140px; min-width: 0; }
+
+.row-actions { display: flex; gap: 6px; }
+
+table select { padding: 4px 6px; }

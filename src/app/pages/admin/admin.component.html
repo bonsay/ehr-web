@@ -1,0 +1,103 @@
+<div class="container">
+  <h1>Administration</h1>
+  <p class="text-muted">
+    Manage who can do what. Roles bundle module permissions; each user is assigned a role.
+  </p>
+
+  <div class="tabs" style="margin-top: 12px;">
+    <button class="tab" [class.active]="section === 'roles'" (click)="section = 'roles'">Roles &amp; Permissions</button>
+    <button class="tab" [class.active]="section === 'users'" (click)="section = 'users'">Users</button>
+  </div>
+
+  <!-- ROLES -->
+  <ng-container *ngIf="section === 'roles'">
+    <div class="card role-card" *ngFor="let role of roles">
+      <div class="row" style="align-items: baseline;">
+        <h3 style="margin: 0;">{{ role.name }}</h3>
+        <code class="text-muted" style="margin-left: 8px;">{{ role.code }}</code>
+        <span class="badge badge-on" *ngIf="role.systemRole" style="margin-left: 8px;">built-in</span>
+        <div class="spacer"></div>
+        <span class="save-msg text-muted" *ngIf="roleMessage[role.code]">{{ roleMessage[role.code] }}</span>
+        <button class="btn btn-primary btn-sm"
+                [disabled]="!canManageRoles || roleSaving[role.code] || !isDirty(role)"
+                (click)="saveRole(role)">
+          {{ roleSaving[role.code] ? 'Saving…' : 'Save' }}
+        </button>
+      </div>
+      <p class="text-muted" style="margin: 4px 0 12px;">{{ role.description }}</p>
+
+      <div class="perm-groups">
+        <div class="perm-group" *ngFor="let group of groupNames()">
+          <div class="perm-group-title">{{ group }}</div>
+          <label class="perm" *ngFor="let p of catalog[group]">
+            <input type="checkbox"
+                   [checked]="hasPerm(role.code, p)"
+                   [disabled]="!canManageRoles"
+                   (change)="togglePerm(role.code, p)">
+            <span>{{ p }}</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- USERS -->
+  <ng-container *ngIf="section === 'users'">
+    <div class="card">
+      <h3>Add a user</h3>
+      <div class="row add-row">
+        <input placeholder="Username *" [(ngModel)]="newUser.username">
+        <input placeholder="Full name" [(ngModel)]="newUser.fullName">
+        <input type="password" placeholder="Password *" [(ngModel)]="newUser.password">
+        <select [(ngModel)]="newUser.roleCode">
+          <option value="">Role *…</option>
+          <option *ngFor="let r of roles" [value]="r.code">{{ r.name }}</option>
+        </select>
+        <select [(ngModel)]="newUser.institutionId">
+          <option [ngValue]="null">Institution…</option>
+          <option *ngFor="let i of institutions" [ngValue]="i.id">{{ i.name }}</option>
+        </select>
+        <button class="btn btn-accent btn-sm" [disabled]="createBusy" (click)="createUser()">
+          {{ createBusy ? 'Adding…' : 'Add user' }}
+        </button>
+      </div>
+      <p class="badge badge-revoked" *ngIf="userError" style="display:inline-block;">{{ userError }}</p>
+    </div>
+
+    <div class="card" style="margin-top: 16px;">
+      <h3>Users</h3>
+      <table *ngIf="users.length">
+        <thead>
+          <tr><th>Username</th><th>Name</th><th>Institution</th><th>Role</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let u of users">
+            <td><strong>{{ u.username }}</strong></td>
+            <td>{{ u.fullName || '—' }}</td>
+            <td>
+              <select [ngModel]="u.institutionId" (ngModelChange)="changeInstitution(u, $event)">
+                <option [ngValue]="null">—</option>
+                <option *ngFor="let i of institutions" [ngValue]="i.id">{{ i.name }}</option>
+              </select>
+            </td>
+            <td>
+              <select [ngModel]="u.roleCode" (ngModelChange)="changeRole(u, $event)">
+                <option *ngFor="let r of roles" [value]="r.code">{{ r.name }}</option>
+              </select>
+            </td>
+            <td>
+              <span class="badge" [class.badge-active]="u.enabled" [class.badge-revoked]="!u.enabled">
+                {{ u.enabled ? 'Active' : 'Disabled' }}
+              </span>
+            </td>
+            <td class="row-actions">
+              <button class="btn btn-sm" (click)="toggleEnabled(u)">{{ u.enabled ? 'Disable' : 'Enable' }}</button>
+              <button class="btn btn-sm btn-danger" (click)="deleteUser(u)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="empty" *ngIf="!users.length">No users.</p>
+    </div>
+  </ng-container>
+</div>

@@ -33,14 +33,17 @@
   <!-- ENCOUNTERS -->
   <div class="card" *ngIf="activeTab === MC.ENCOUNTERS">
     <h3>Encounters</h3>
-    <div class="row add-row">
-      <input placeholder="Type (e.g. Office Visit)" [(ngModel)]="newEncounter.type">
-      <input style="flex: 2;" placeholder="Reason" [(ngModel)]="newEncounter.reason">
-      <input placeholder="Provider" [(ngModel)]="newEncounter.providerName">
-      <button class="btn btn-accent btn-sm" (click)="addEncounter()">Add</button>
-    </div>
-    <textarea style="width: 100%; margin-top: 8px;" rows="2"
-              placeholder="Notes…" [(ngModel)]="newEncounter.notes"></textarea>
+    <ng-container *ngIf="canWrite(MC.ENCOUNTERS); else encReadOnly">
+      <div class="row add-row">
+        <input placeholder="Type (e.g. Office Visit)" [(ngModel)]="newEncounter.type">
+        <input style="flex: 2;" placeholder="Reason" [(ngModel)]="newEncounter.reason">
+        <input placeholder="Provider" [(ngModel)]="newEncounter.providerName">
+        <button class="btn btn-accent btn-sm" (click)="addEncounter()">Add</button>
+      </div>
+      <textarea style="width: 100%; margin-top: 8px;" rows="2"
+                placeholder="Notes…" [(ngModel)]="newEncounter.notes"></textarea>
+    </ng-container>
+    <ng-template #encReadOnly><p class="text-muted readonly-note">🔒 Your role has read-only access to encounters.</p></ng-template>
     <table *ngIf="encounters.length">
       <thead><tr><th>Date</th><th>Type</th><th>Reason</th><th>Provider</th><th>Status</th><th></th></tr></thead>
       <tbody>
@@ -50,7 +53,7 @@
           <td>{{ e.reason }}</td>
           <td>{{ e.providerName }}</td>
           <td>{{ e.status }}</td>
-          <td><button class="btn btn-sm btn-danger" (click)="removeEncounter(e)">Delete</button></td>
+          <td><button class="btn btn-sm btn-danger" *ngIf="canWrite(MC.ENCOUNTERS)" (click)="removeEncounter(e)">Delete</button></td>
         </tr>
       </tbody>
     </table>
@@ -60,12 +63,13 @@
   <!-- PROBLEMS -->
   <div class="card" *ngIf="activeTab === MC.PROBLEMS">
     <h3>Problem List</h3>
-    <div class="row add-row">
+    <div class="row add-row" *ngIf="canWrite(MC.PROBLEMS); else probReadOnly">
       <input placeholder="Code (ICD-10)" [(ngModel)]="newProblem.code">
       <input style="flex: 2;" placeholder="Description *" [(ngModel)]="newProblem.description">
       <input type="date" [(ngModel)]="newProblem.onsetDate">
       <button class="btn btn-accent btn-sm" (click)="addProblem()">Add</button>
     </div>
+    <ng-template #probReadOnly><p class="text-muted readonly-note">🔒 Your role has read-only access to the problem list.</p></ng-template>
     <table *ngIf="problems.length">
       <thead><tr><th>Code</th><th>Description</th><th>Status</th><th>Onset</th><th></th></tr></thead>
       <tbody>
@@ -74,7 +78,7 @@
           <td>{{ p.description }}</td>
           <td><span class="badge badge-active">{{ p.status }}</span></td>
           <td>{{ p.onsetDate || '—' }}</td>
-          <td><button class="btn btn-sm btn-danger" (click)="removeProblem(p)">Delete</button></td>
+          <td><button class="btn btn-sm btn-danger" *ngIf="canWrite(MC.PROBLEMS)" (click)="removeProblem(p)">Delete</button></td>
         </tr>
       </tbody>
     </table>
@@ -84,13 +88,14 @@
   <!-- MEDICATIONS -->
   <div class="card" *ngIf="activeTab === MC.MEDICATIONS">
     <h3>Medications</h3>
-    <div class="row add-row">
+    <div class="row add-row" *ngIf="canWrite(MC.MEDICATIONS); else medReadOnly">
       <input style="flex: 2;" placeholder="Name *" [(ngModel)]="newMedication.name">
       <input placeholder="Dosage" [(ngModel)]="newMedication.dosage">
       <input placeholder="Frequency" [(ngModel)]="newMedication.frequency">
       <input placeholder="Route" [(ngModel)]="newMedication.route">
       <button class="btn btn-accent btn-sm" (click)="addMedication()">Add</button>
     </div>
+    <ng-template #medReadOnly><p class="text-muted readonly-note">🔒 Your role cannot prescribe medications. Contact a physician.</p></ng-template>
     <table *ngIf="medications.length">
       <thead><tr><th>Name</th><th>Dosage</th><th>Frequency</th><th>Route</th><th>Status</th><th></th></tr></thead>
       <tbody>
@@ -100,7 +105,7 @@
           <td>{{ m.frequency }}</td>
           <td>{{ m.route }}</td>
           <td><span class="badge badge-active">{{ m.status }}</span></td>
-          <td><button class="btn btn-sm btn-danger" (click)="removeMedication(m)">Delete</button></td>
+          <td><button class="btn btn-sm btn-danger" *ngIf="canWrite(MC.MEDICATIONS)" (click)="removeMedication(m)">Delete</button></td>
         </tr>
       </tbody>
     </table>
@@ -110,7 +115,7 @@
   <!-- ALLERGIES -->
   <div class="card" *ngIf="activeTab === MC.ALLERGIES">
     <h3>Allergies</h3>
-    <div class="row add-row">
+    <div class="row add-row" *ngIf="canWrite(MC.ALLERGIES); else allergyReadOnly">
       <input placeholder="Allergen *" [(ngModel)]="newAllergy.allergen">
       <input style="flex: 2;" placeholder="Reaction" [(ngModel)]="newAllergy.reaction">
       <select [(ngModel)]="newAllergy.severity">
@@ -121,6 +126,7 @@
       </select>
       <button class="btn btn-accent btn-sm" (click)="addAllergy()">Add</button>
     </div>
+    <ng-template #allergyReadOnly><p class="text-muted readonly-note">🔒 Your role has read-only access to allergies.</p></ng-template>
     <table *ngIf="allergies.length">
       <thead><tr><th>Allergen</th><th>Reaction</th><th>Severity</th><th>Status</th><th></th></tr></thead>
       <tbody>
@@ -129,7 +135,7 @@
           <td>{{ a.reaction }}</td>
           <td><span class="badge badge-warn">{{ a.severity }}</span></td>
           <td>{{ a.status }}</td>
-          <td><button class="btn btn-sm btn-danger" (click)="removeAllergy(a)">Delete</button></td>
+          <td><button class="btn btn-sm btn-danger" *ngIf="canWrite(MC.ALLERGIES)" (click)="removeAllergy(a)">Delete</button></td>
         </tr>
       </tbody>
     </table>
@@ -139,7 +145,7 @@
   <!-- VITALS -->
   <div class="card" *ngIf="activeTab === MC.VITALS">
     <h3>Vital Signs</h3>
-    <div class="row add-row">
+    <div class="row add-row" *ngIf="canWrite(MC.VITALS); else vitalReadOnly">
       <input placeholder="BP (120/80)" [(ngModel)]="newVital.bloodPressure">
       <input type="number" placeholder="HR" [(ngModel)]="newVital.heartRate">
       <input type="number" placeholder="RR" [(ngModel)]="newVital.respiratoryRate">
@@ -147,6 +153,7 @@
       <input type="number" placeholder="SpO₂ %" [(ngModel)]="newVital.oxygenSaturation">
       <button class="btn btn-accent btn-sm" (click)="addVital()">Add</button>
     </div>
+    <ng-template #vitalReadOnly><p class="text-muted readonly-note">🔒 Your role has read-only access to vitals.</p></ng-template>
     <table *ngIf="vitals.length">
       <thead><tr><th>Date</th><th>BP</th><th>HR</th><th>RR</th><th>Temp</th><th>SpO₂</th><th></th></tr></thead>
       <tbody>
@@ -157,7 +164,7 @@
           <td>{{ v.respiratoryRate }}</td>
           <td>{{ v.temperature }}</td>
           <td>{{ v.oxygenSaturation }}</td>
-          <td><button class="btn btn-sm btn-danger" (click)="removeVital(v)">Delete</button></td>
+          <td><button class="btn btn-sm btn-danger" *ngIf="canWrite(MC.VITALS)" (click)="removeVital(v)">Delete</button></td>
         </tr>
       </tbody>
     </table>

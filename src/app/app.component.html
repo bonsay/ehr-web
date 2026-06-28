@@ -4,15 +4,16 @@
     <span class="title">Modular EHR</span>
   </div>
 
-  <nav class="nav">
+  <nav class="nav" *ngIf="auth.hasValidToken()">
     <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
     <a routerLink="/patients" routerLinkActive="active">Patients</a>
     <a routerLink="/modules" routerLinkActive="active">Modules</a>
+    <a routerLink="/admin" routerLinkActive="active" *ngIf="auth.isAdmin">Admin</a>
   </nav>
 
   <div class="spacer"></div>
 
-  <div class="institution-picker" *ngIf="institutions.length">
+  <div class="institution-picker" *ngIf="institutions.length && auth.hasValidToken()">
     <label for="inst">Acting as</label>
     <select id="inst"
             [value]="current?.id"
@@ -24,11 +25,11 @@
   </div>
 
   <div class="auth-box" *ngIf="auth.enabled">
-    <span class="user" *ngIf="auth.hasValidToken()">{{ auth.username || 'Signed in' }}</span>
-    <button class="btn btn-sm" *ngIf="auth.hasValidToken(); else loginBtn" (click)="auth.logout()">Sign out</button>
-    <ng-template #loginBtn>
-      <button class="btn btn-sm" (click)="auth.login()">Sign in</button>
-    </ng-template>
+    <span class="user" *ngIf="auth.hasValidToken()">
+      {{ auth.username || 'Signed in' }}
+      <span class="role-badge" *ngIf="auth.role">{{ auth.role }}</span>
+    </span>
+    <button class="btn btn-sm" *ngIf="auth.hasValidToken()" (click)="signOut()">Sign out</button>
   </div>
 </header>
 

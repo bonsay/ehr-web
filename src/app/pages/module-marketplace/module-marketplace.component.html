@@ -4,6 +4,9 @@
     Pick the EHR functions that suit <strong>{{ current.name }}</strong>'s clinical needs.
     Enabled modules appear on every patient chart; disabled ones stay hidden.
   </p>
+  <p class="badge badge-warn" *ngIf="!canManage" style="display:inline-block;">
+    🔒 Read-only — enabling or disabling modules requires the Administrator role.
+  </p>
 
   <ng-container *ngFor="let category of categories">
     <h3 style="margin-top: 24px;">{{ category }}</h3>
@@ -22,7 +25,8 @@
           <button class="btn btn-sm"
                   [class.btn-danger]="m.enabled"
                   [class.btn-accent]="!m.enabled"
-                  [disabled]="saving[m.code]"
+                  [disabled]="saving[m.code] || !canManage"
+                  [title]="canManage ? '' : 'Requires the Administrator role'"
                   (click)="toggle(m)">
             {{ saving[m.code] ? 'Saving…' : (m.enabled ? 'Disable' : 'Enable') }}
           </button>
