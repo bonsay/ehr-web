@@ -4,12 +4,14 @@ import { PatientListComponent } from './pages/patient-list/patient-list.componen
 import { PatientDetailComponent } from './pages/patient-detail/patient-detail.component';
 import { ModuleMarketplaceComponent } from './pages/module-marketplace/module-marketplace.component';
 import { LoginComponent } from './pages/login/login.component';
+import { RegisterComponent } from './pages/register/register.component';
 import { AdminComponent } from './pages/admin/admin.component';
 import { authGuard, adminGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'patients', component: PatientListComponent, canActivate: [authGuard] },
   { path: 'patients/:id', component: PatientDetailComponent, canActivate: [authGuard] },
