@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { EhrModule, Entitlement, ModuleStatus } from '../models/ehr.models';
+import { CheckoutResult, EhrModule, Entitlement, ModuleStatus } from '../models/ehr.models';
 
 @Injectable({ providedIn: 'root' })
 export class ModuleService {
@@ -40,9 +40,12 @@ export class ModuleService {
     );
   }
 
-  /** Purchase a paid module; returns the module's updated state. */
-  purchase(institutionId: number, moduleCode: string): Observable<ModuleStatus> {
-    return this.http.post<ModuleStatus>(
+  /**
+   * Start a purchase via the active billing provider. Returns either a completed
+   * grant (local) or a hosted-checkout URL to redirect to (Stripe).
+   */
+  purchase(institutionId: number, moduleCode: string): Observable<CheckoutResult> {
+    return this.http.post<CheckoutResult>(
       `${this.apiUrl}/institutions/${institutionId}/modules/${moduleCode}/purchase`, {}
     );
   }
