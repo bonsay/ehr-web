@@ -51,6 +51,17 @@ export interface ModuleStatus {
   entitlementStatus?: EntitlementStatus | null;
 }
 
+/**
+ * Result of starting a purchase. Either the entitlement was granted
+ * synchronously (local billing, `completed: true`) or the client must redirect
+ * to a hosted checkout (`checkoutUrl` set, Stripe grants later via webhook).
+ */
+export interface CheckoutResult {
+  mode: string;
+  completed: boolean;
+  checkoutUrl?: string | null;
+}
+
 /** An institution's entitlement to a single module (admin/billing view). */
 export interface Entitlement {
   moduleCode: string;

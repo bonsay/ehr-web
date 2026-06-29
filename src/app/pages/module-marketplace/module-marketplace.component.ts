@@ -74,23 +74,35 @@ export class ModuleMarketplaceComponent implements OnInit {
     return `$${amount}/mo`;
   }
 
-  /** Start a free trial of a paid module. */
+  /** Start a free trial of a paid module (always granted directly). */
   startTrial(module: ModuleStatus): void {
-    this.runPurchase(module, id => this.moduleService.startTrial(id, module.code));
-  }
-
-  /** Purchase a paid module. */
-  purchase(module: ModuleStatus): void {
-    this.runPurchase(module, id => this.moduleService.purchase(id, module.code));
-  }
-
-  private runPurchase(module: ModuleStatus, call: (institutionId: number) => any): void {
     if (this.current?.id == null || !this.canManage) { return; }
     this.buying[module.code] = true;
-    call(this.current.id).subscribe({
-      next: (updated: ModuleStatus) => {
+    this.moduleService.startTrial(this.current.id, module.code).subscribe({
+      next: updated => {
         this.apply(module, updated);
         this.buying[module.code] = false;
+      },
+      error: () => (this.buying[module.code] = false)
+    });
+  }
+
+  /**
+   * Purchase a paid module. With local billing the grant is immediate and we
+   * refresh; with Stripe the server returns a hosted-checkout URL to redirect to,
+   * and the entitlement is granted on the webhook by the time the buyer returns.
+   */
+  purchase(module: ModuleStatus): void {
+    if (this.current?.id == null || !this.canManage) { return; }
+    this.buying[module.code] = true;
+    this.moduleService.purchase(this.current.id, module.code).subscribe({
+      next: result => {
+        if (result.checkoutUrl) {
+          window.location.href = result.checkoutUrl;
+          return;
+        }
+        this.buying[module.code] = false;
+        this.load();
       },
       error: () => (this.buying[module.code] = false)
     });
