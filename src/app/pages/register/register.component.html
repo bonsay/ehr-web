@@ -1,0 +1,44 @@
+<div class="login-wrap">
+  <div class="card login-card">
+    <div class="brand" style="justify-content: center; margin-bottom: 8px;">
+      <span class="logo">✚</span>
+      <span class="title">Modular EHR</span>
+    </div>
+    <p class="text-muted text-center">Create your free institution workspace</p>
+
+    <form (ngSubmit)="submit()">
+      <label class="field-label" for="iname">Institution name</label>
+      <input id="iname" [(ngModel)]="institutionName" name="institutionName"
+             placeholder="e.g. Riverside Family Practice" />
+
+      <label class="field-label" for="icode">Institution code</label>
+      <input id="icode" [(ngModel)]="institutionCode" name="institutionCode"
+             placeholder="e.g. RFP" />
+
+      <label class="field-label" for="fname">Your name</label>
+      <input id="fname" [(ngModel)]="adminFullName" name="adminFullName"
+             placeholder="e.g. Dr. Sam Rivers" />
+
+      <label class="field-label" for="u">Admin username</label>
+      <input id="u" autocomplete="username" [(ngModel)]="adminUsername" name="adminUsername"
+             placeholder="Choose a username" />
+
+      <label class="field-label" for="p">Password</label>
+      <input id="p" type="password" autocomplete="new-password"
+             [(ngModel)]="adminPassword" name="adminPassword" placeholder="At least 8 characters" />
+
+      <p class="badge badge-revoked login-error" *ngIf="error">{{ error }}</p>
+
+      <button class="btn btn-primary login-submit" type="submit" [disabled]="busy">
+        {{ busy ? 'Creating…' : 'Create institution' }}
+      </button>
+    </form>
+
+    <p class="text-muted text-center" style="margin-top: 16px;">
+      You'll start on the free tier with all core clinical modules enabled.
+    </p>
+    <p class="text-center" style="margin-top: 8px;">
+      <a routerLink="/login">Already have an account? Sign in</a>
+    </p>
+  </div>
+</div>

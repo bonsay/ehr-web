@@ -187,6 +187,25 @@ export interface CurrentUser {
   permissions: string[];
 }
 
+/** Self-service sign-up request: a new institution and its first administrator. */
+export interface RegisterRequest {
+  institutionName: string;
+  institutionCode: string;
+  adminUsername: string;
+  adminPassword: string;
+  adminFullName?: string;
+}
+
+/** Result of self-service onboarding. */
+export interface RegistrationResult {
+  institutionId: number;
+  institutionCode: string;
+  adminUsername: string;
+  enabledModules: string[];
+  /** Auto-login token (local mode); null under external OIDC. */
+  login?: LoginResponse | null;
+}
+
 /** Successful local-mode login result. */
 export interface LoginResponse {
   accessToken: string;

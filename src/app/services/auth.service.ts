@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
 import { AuthConfig, OAuthService } from 'angular-oauth2-oidc';
 import { environment } from '../../environments/environment';
-import { CurrentUser, LoginResponse } from '../models/ehr.models';
+import { CurrentUser, LoginResponse, RegisterRequest, RegistrationResult } from '../models/ehr.models';
 
 const TOKEN_KEY = 'ehr.accessToken';
 
@@ -94,6 +94,25 @@ export class AuthService {
     localStorage.setItem(TOKEN_KEY, res.accessToken);
     this.userSubject.next(res.user);
     return res.user;
+  }
+
+  // ---- Self-service onboarding ----------------------------------------------
+
+  /**
+   * Register a new institution (free tier) and its first administrator. In local
+   * mode the response carries an access token, so the new admin is signed in
+   * immediately and the resolved user is returned.
+   */
+  async register(request: RegisterRequest): Promise<CurrentUser | null> {
+    const res = await firstValueFrom(this.http.post<RegistrationResult>(
+      `${environment.apiUrl}/onboarding/register`, request));
+    if (res.login) {
+      this.localToken = res.login.accessToken;
+      localStorage.setItem(TOKEN_KEY, res.login.accessToken);
+      this.userSubject.next(res.login.user);
+      return res.login.user;
+    }
+    return null;
   }
 
   // ---- OIDC redirect login --------------------------------------------------
