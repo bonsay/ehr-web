@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { EhrModule, ModuleStatus } from '../models/ehr.models';
+import { EhrModule, Entitlement, ModuleStatus } from '../models/ehr.models';
 
 @Injectable({ providedIn: 'root' })
 export class ModuleService {
@@ -25,6 +25,25 @@ export class ModuleService {
     return this.http.put<ModuleStatus>(
       `${this.apiUrl}/institutions/${institutionId}/modules/${moduleCode}`,
       { enabled }
+    );
+  }
+
+  /** The institution's module entitlements (subscriptions / purchases). */
+  getEntitlements(institutionId: number): Observable<Entitlement[]> {
+    return this.http.get<Entitlement[]>(`${this.apiUrl}/institutions/${institutionId}/entitlements`);
+  }
+
+  /** Start a free trial of a paid module; returns the module's updated state. */
+  startTrial(institutionId: number, moduleCode: string): Observable<ModuleStatus> {
+    return this.http.post<ModuleStatus>(
+      `${this.apiUrl}/institutions/${institutionId}/modules/${moduleCode}/trial`, {}
+    );
+  }
+
+  /** Purchase a paid module; returns the module's updated state. */
+  purchase(institutionId: number, moduleCode: string): Observable<ModuleStatus> {
+    return this.http.post<ModuleStatus>(
+      `${this.apiUrl}/institutions/${institutionId}/modules/${moduleCode}/purchase`, {}
     );
   }
 }

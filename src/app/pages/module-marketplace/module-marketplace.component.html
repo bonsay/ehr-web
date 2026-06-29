@@ -19,18 +19,51 @@
             {{ m.enabled ? 'Enabled' : 'Disabled' }}
           </span>
         </div>
+
+        <!-- Tier / price line -->
+        <div class="row" style="align-items: center; gap: 8px; margin-top: 4px;">
+          <span class="badge" *ngIf="isPaid(m)" [class.badge-warn]="m.tier === 'ENTERPRISE'">
+            {{ m.tier === 'ENTERPRISE' ? 'Enterprise' : 'Pro' }}
+          </span>
+          <span class="badge" *ngIf="!isPaid(m)">Free</span>
+          <span class="text-muted" *ngIf="isPaid(m)">{{ priceLabel(m) }}</span>
+          <span class="badge badge-on" *ngIf="isPaid(m) && m.entitlementStatus === 'ACTIVE'">Subscribed</span>
+          <span class="badge badge-warn" *ngIf="isPaid(m) && m.entitlementStatus === 'TRIAL'">Trial</span>
+        </div>
+
         <p class="text-muted">{{ m.description }}</p>
         <code class="text-muted">{{ m.code }}</code>
-        <div style="margin-top: 12px;">
-          <button class="btn btn-sm"
-                  [class.btn-danger]="m.enabled"
-                  [class.btn-accent]="!m.enabled"
-                  [disabled]="saving[m.code] || !canManage"
+
+        <!-- Storefront: an unlicensed paid module is bought / trialed first. -->
+        <div style="margin-top: 12px;" *ngIf="needsPurchase(m); else manage">
+          <button class="btn btn-sm btn-accent"
+                  [disabled]="buying[m.code] || !canManage"
                   [title]="canManage ? '' : 'Requires the Administrator role'"
-                  (click)="toggle(m)">
-            {{ saving[m.code] ? 'Saving…' : (m.enabled ? 'Disable' : 'Enable') }}
+                  (click)="purchase(m)">
+            {{ buying[m.code] ? 'Processing…' : 'Buy ' + priceLabel(m) }}
+          </button>
+          <button class="btn btn-sm"
+                  style="margin-left: 8px;"
+                  [disabled]="buying[m.code] || !canManage"
+                  [title]="canManage ? '' : 'Requires the Administrator role'"
+                  (click)="startTrial(m)">
+            Start free trial
           </button>
         </div>
+
+        <!-- Free or already-licensed module: the normal enable/disable toggle. -->
+        <ng-template #manage>
+          <div style="margin-top: 12px;">
+            <button class="btn btn-sm"
+                    [class.btn-danger]="m.enabled"
+                    [class.btn-accent]="!m.enabled"
+                    [disabled]="saving[m.code] || !canManage"
+                    [title]="canManage ? '' : 'Requires the Administrator role'"
+                    (click)="toggle(m)">
+              {{ saving[m.code] ? 'Saving…' : (m.enabled ? 'Disable' : 'Enable') }}
+            </button>
+          </div>
+        </ng-template>
       </div>
     </div>
   </ng-container>

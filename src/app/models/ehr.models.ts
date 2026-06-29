@@ -22,7 +22,19 @@ export interface EhrModule {
   active?: boolean;
 }
 
-/** A catalog module annotated with whether the current institution enabled it. */
+/** Commercial tier of a catalog module (mirrors com.ehrapi.entity.ModuleTier). */
+export type ModuleTier = 'FREE' | 'PRO' | 'ENTERPRISE';
+
+/** How a module is charged for (mirrors com.ehrapi.entity.PriceModel). */
+export type PriceModel = 'FREE' | 'SUBSCRIPTION' | 'ONE_TIME';
+
+/** Lifecycle of an institution's entitlement (mirrors EntitlementStatus). */
+export type EntitlementStatus = 'TRIAL' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
+
+/**
+ * A catalog module annotated with whether the current institution enabled it,
+ * plus its commercial state (tier, price, entitlement) for the storefront UI.
+ */
 export interface ModuleStatus {
   code: string;
   name: string;
@@ -30,6 +42,23 @@ export interface ModuleStatus {
   category?: string;
   apiPath?: string;
   enabled: boolean;
+  tier?: ModuleTier;
+  priceModel?: PriceModel;
+  priceMonthlyCents?: number | null;
+  /** Whether the institution may currently enable/use this module. */
+  entitled?: boolean;
+  /** Stored entitlement status, if any (null = never licensed). */
+  entitlementStatus?: EntitlementStatus | null;
+}
+
+/** An institution's entitlement to a single module (admin/billing view). */
+export interface Entitlement {
+  moduleCode: string;
+  status: EntitlementStatus;
+  source?: string;
+  startsAt?: string;
+  expiresAt?: string | null;
+  active: boolean;
 }
 
 export interface Patient {
